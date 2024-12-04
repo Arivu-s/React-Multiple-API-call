@@ -1,0 +1,109 @@
+Here’s an optimized approach for handling multiple `POST` API calls in React using `fetch`. The following code ensures performance and readability, with error handling and optimized parallel requests.
+
+### **Optimized Code for Multiple API Calls**
+
+```jsx
+import React, { useEffect, useState } from "react";
+
+const MultipleApiCalls = () => {
+  const [responses, setResponses] = useState([]);
+  const [error, setError] = useState(null);
+
+  // Array of payloads for the POST requests
+  const payloads = [
+    { id: 1, data: "Sample data 1" },
+    { id: 2, data: "Sample data 2" },
+    { id: 3, data: "Sample data 3" },
+  ];
+
+  const apiUrl = "https://example.com/api"; // Replace with your API URL
+
+  const fetchMultipleApis = async () => {
+    try {
+      // Generate an array of fetch promises
+      const fetchPromises = payloads.map((payload) =>
+        fetch(apiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }).then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json(); // Parse JSON response
+        })
+      );
+
+      // Use Promise.all for parallel execution
+      const results = await Promise.all(fetchPromises);
+      setResponses(results); // Update state with responses
+    } catch (err) {
+      console.error("Error fetching APIs:", err);
+      setError(err.message); // Update state with the error
+    }
+  };
+
+  useEffect(() => {
+    fetchMultipleApis();
+  }, []); // Runs once on component mount
+
+  return (
+    <div>
+      <h1>Multiple API Calls</h1>
+      {error ? (
+        <p style={{ color: "red" }}>Error: {error}</p>
+      ) : (
+        <div>
+          <h2>Responses:</h2>
+          <ul>
+            {responses.map((response, index) => (
+              <li key={index}>{JSON.stringify(response)}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default MultipleApiCalls;
+```
+
+---
+
+### **Key Features of the Code**
+1. **Parallel Execution with `Promise.all`:**
+   - All API calls are executed simultaneously for better performance.
+   - Reduces the overall waiting time compared to sequential calls.
+
+2. **Error Handling:**
+   - Errors are caught and displayed using `try-catch`.
+   - Checks the HTTP response status to handle server-side errors effectively.
+
+3. **Dynamic Payloads:**
+   - The `payloads` array is easily extendable for multiple API requests with unique data.
+
+4. **State Management:**
+   - Responses are stored in the `responses` state for display or further processing.
+   - Errors are stored in the `error` state.
+
+5. **Maintainability:**
+   - Using `map` ensures the code is modular and scalable for any number of requests.
+
+---
+
+### **Why This Code is Optimized**
+1. **Parallelization:**  
+   Using `Promise.all` makes the process efficient by reducing the waiting time for multiple API calls.
+   
+2. **Error Safety:**  
+   Each API response is individually validated to prevent silent failures.
+
+3. **Clean and Reusable:**  
+   Easy to adapt for different APIs or payload structures.
+
+---
+
+Feel free to extend or modify this for specific use cases like retry mechanisms, loading states, or more detailed error reporting. Let me know if you need additional optimizations!
